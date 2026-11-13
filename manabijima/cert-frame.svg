@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="144" height="144" viewBox="0 0 144 144">
+  <!-- 賞状の 金の わく。border-image で 48px ずつに 9分割して つかう：
+       4すみ = #c（さくらの 紋）、4へん = #e（唐草の くりかえし）。まんなかは からっぽ。 -->
+  <defs>
+    <!-- 金ぱくの テカリ：ななめに うすく 明暗を くりかえす -->
+    <linearGradient id="g" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="110" y2="60" spreadMethod="reflect">
+      <stop offset="0" stop-color="#7d5a10"/>
+      <stop offset=".3" stop-color="#bf963d"/>
+      <stop offset=".52" stop-color="#e2c97f"/>
+      <stop offset=".72" stop-color="#b98d2e"/>
+      <stop offset="1" stop-color="#86621a"/>
+    </linearGradient>
+    <path id="petal" d="M24 24c-2.7-2.3-3.6-6.8-1.1-8.9l1.1 1.1 1.1-1.1c2.5 2.1 1.6 6.6-1.1 8.9z"/>
+
+    <!-- へん（上むき）：そとがわの 太線＋細線、うちがわの 細線＋太線、そのあいだに 唐草 -->
+    <g id="e" fill="none" stroke="url(#g)" stroke-linecap="round">
+      <path d="M0 3.5H48M0 44.5H48" stroke-width="2.2"/>
+      <path d="M0 7.2H48M0 40.8H48" stroke-width=".9"/>
+      <path d="M0 24C8 14 16 14 24 24S40 34 48 24" stroke-width="1.6"/>
+      <path d="M14.5 17.2c4-6 11.2-5.2 11.2-.6 0 3.1-4.1 3.6-5.1 1.2" stroke-width="1.2"/>
+      <path d="M33.5 30.8c-4 6-11.2 5.2-11.2.6 0-3.1 4.1-3.6 5.1-1.2" stroke-width="1.2"/>
+      <g fill="url(#g)" stroke="none">
+        <path d="M5.6 20.4c-3.4.6-5 3.6-4.2 6.4 3.2-.7 4.8-3.3 4.2-6.4z"/>
+        <path d="M42.4 27.6c3.4-.6 5-3.6 4.2-6.4-3.2.7-4.8 3.3-4.2 6.4z"/>
+        <circle cx="31" cy="13.6" r="1.4"/>
+        <circle cx="17" cy="34.4" r="1.4"/>
+      </g>
+    </g>
+
+    <!-- すみ：線が 直角に まがり、まんなかに さくらの 紋 -->
+    <g id="c" stroke="url(#g)" stroke-linecap="square" fill="none">
+      <path d="M48 3.5H3.5V48M48 44.5H44.5V48" stroke-width="2.2"/>
+      <path d="M48 7.2H7.2V48M48 40.8H40.8V48" stroke-width=".9"/>
+      <circle cx="24" cy="24" r="12.5" stroke-width="1.3"/>
+      <circle cx="24" cy="24" r="14.6" stroke-width=".6"/>
+      <g fill="url(#g)" stroke="none">
+        <use xlink:href="#petal"/>
+        <use xlink:href="#petal" transform="rotate(72 24 24)"/>
+        <use xlink:href="#petal" transform="rotate(144 24 24)"/>
+        <use xlink:href="#petal" transform="rotate(216 24 24)"/>
+        <use xlink:href="#petal" transform="rotate(288 24 24)"/>
+      </g>
+      <circle cx="24" cy="24" r="1.6" fill="#fffdf6" stroke="none"/>
+    </g>
+  </defs>
+
+  <use xlink:href="#c"/>
+  <use xlink:href="#c" transform="translate(144 0) scale(-1 1)"/>
+  <use xlink:href="#c" transform="translate(0 144) scale(1 -1)"/>
+  <use xlink:href="#c" transform="translate(144 144) scale(-1 -1)"/>
+  <use xlink:href="#e" transform="translate(48 0)"/>
+  <use xlink:href="#e" transform="translate(96 144) rotate(180)"/>
+  <use xlink:href="#e" transform="translate(0 96) rotate(-90)"/>
+  <use xlink:href="#e" transform="translate(144 48) rotate(90)"/>
+</svg>
