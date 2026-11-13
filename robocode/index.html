@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="エディタにプログラムを打ち込んでロボットを動かす、子ども向けプログラミングゲーム">
+<style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>ロボコード</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=M+PLUS+1+Code:wght@400;700&family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap">
+<style>
+/* layout: a kid-sized code editor on the left, the robot's 7×7 field on the right; stacks field-first on phones. One deliberate dark "night lab" look. */
+:root{
+  --bg:#161a2c; --panel:#20253d; --panel2:#2a3050; --line:#383f68; --ink:#eef0ff; --soft:#a2a8d0;
+  --dir:#62d6ff; --kw:#ff7ab6; --num:#ffc857; --str:#a4e88f; --com:#7d84b0;
+  --err:#ff6b6b; --err-bg:#3d2233; --ok:#6fe6a9; --accent:#ffc857; --curline:#3a4170;
+  --tile:#2b3359; --tile2:#313a64; --trail:#62d6ff;
+  --pixel:"DotGothic16","M PLUS 1 Code",monospace;
+  --mono:"M PLUS 1 Code","Osaka-Mono","MS Gothic",ui-monospace,monospace;
+  --body:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-weight:500;font-size:16px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 40px;
+  background-image:linear-gradient(var(--panel) 1px,transparent 1px),linear-gradient(90deg,var(--panel) 1px,transparent 1px);background-size:32px 32px}
+button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer}
+button:disabled{opacity:.4;cursor:not-allowed}
+button:focus-visible{outline:3px solid var(--dir);outline-offset:2px}
+code{font-family:var(--mono);background:var(--panel2);border-radius:6px;padding:1px 6px;color:var(--dir)}
+.app{max-width:1120px;margin:0 auto}
+
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-block:14px}
+.logo{font-family:var(--pixel);font-size:30px;letter-spacing:.06em;display:flex;align-items:center;gap:10px;margin:0;font-weight:400}
+.logo .cur{display:inline-block;width:.55em;height:1em;background:var(--accent);animation:blink 1s steps(1) infinite;vertical-align:-3px}
+.topr{display:flex;gap:8px;align-items:center}
+.pill{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:4px 14px;font-weight:800;display:inline-flex;gap:6px;align-items:center}
+.pill .s{color:var(--accent)}
+.pill b{font-variant-numeric:tabular-nums}
+
+.stages{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;margin-bottom:6px}
+.stg{flex:0 0 auto;width:58px;border-radius:12px;border:1px solid var(--line);background:var(--panel);padding:6px 0 4px;display:flex;flex-direction:column;align-items:center;font-family:var(--pixel);font-size:20px;line-height:1.2}
+.stg small{font-size:10px;letter-spacing:1px;color:var(--accent);min-height:14px;font-family:var(--body)}
+.stg small .o{color:var(--line)}
+.stg.on{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+.stg.on small,.stg.on small .o{color:var(--bg)}
+
+.main{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.main{grid-template-columns:minmax(0,1fr)}.fieldcol{order:-1}}
+
+.mission{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:14px}
+.mission h2{font-family:var(--pixel);font-weight:400;font-size:22px;margin:0 0 4px;text-wrap:balance}
+.mission .mgoal{color:var(--accent);font-weight:800;font-size:15px}
+.mission .tip{margin:6px 0 0;color:var(--soft);white-space:pre-line}
+
+.editor{background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.edhead{display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--panel2);border-bottom:1px solid var(--line);font-family:var(--mono);font-size:14px;color:var(--soft)}
+.edhead .lights{display:flex;gap:6px}.edhead .lights i{width:11px;height:11px;border-radius:50%;background:var(--kw)}
+.edhead .lights i:nth-child(2){background:var(--num)}.edhead .lights i:nth-child(3){background:var(--ok)}
+.edhead .lc{margin-left:auto;font-variant-numeric:tabular-nums}
+.edwrap{position:relative;height:300px;background:var(--bg)}
+.edwrap:focus-within{box-shadow:inset 0 0 0 2px var(--dir)}
+.hl,#code{position:absolute;inset:0;margin:0;border:0;font-family:var(--mono);font-size:18px;line-height:1.75;white-space:pre;tab-size:2;padding:12px 14px 40px 12px;letter-spacing:0}
+.hl{overflow:hidden;pointer-events:none;color:var(--ink)}
+#code{padding-left:calc(12px + 3.5ch);background:transparent;color:transparent;caret-color:var(--accent);resize:none;outline:none;overflow:auto;width:100%;height:100%}
+#code::selection{background:rgba(98,214,255,.3)}
+.hl .l{display:block;min-height:1.75em;border-radius:4px}
+.hl .ln{display:inline-block;width:3.5ch;color:var(--com);user-select:none}
+.hl .l.run{background:var(--curline)}
+.hl .l.bad{background:var(--err-bg)}
+.hl .l.bad .ln{color:var(--err)}
+.t-dir{color:var(--dir);font-weight:700}.t-kw{color:var(--kw);font-weight:700}.t-num{color:var(--num)}.t-str{color:var(--str)}.t-com{color:var(--com);font-style:italic}.t-say{color:var(--str);font-weight:700}
+
+.chips{display:flex;gap:6px;flex-wrap:wrap;padding:10px 12px;border-top:1px solid var(--line)}
+.chip{font-family:var(--mono);font-size:14px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);padding:4px 10px}
+.chip.d{color:var(--dir)}.chip.k{color:var(--kw)}.chip.s{color:var(--str)}
+.chips .lbl{font-size:12px;color:var(--soft);align-self:center;margin-right:2px}
+
+.console{font-family:var(--mono);font-size:15px;padding:10px 14px;min-height:48px;border-top:1px solid var(--line);background:#11152a;white-space:pre-wrap}
+.console.err{color:var(--err)}.console.ok{color:var(--ok)}.console.info{color:var(--soft)}
+
+.ctrl{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center}
+.btn{border:0;border-radius:14px;padding:12px 20px;font-weight:800;font-size:17px;background:var(--panel2);border:1px solid var(--line)}
+.btn.go{background:var(--ok);color:#10301f;border-color:var(--ok);font-size:19px;padding:12px 26px;box-shadow:0 4px 0 #3aa874}
+.btn.go:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 #3aa874}
+.btn.stop{background:var(--err);color:#3a0d12;border-color:var(--err)}
+.speed{display:flex;gap:4px;align-items:center;margin-left:auto;font-size:14px;color:var(--soft)}
+.speed button{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:4px 10px;font-size:14px}
+.speed button[aria-pressed="true"]{background:var(--dir);color:var(--bg);border-color:var(--dir);font-weight:800}
+
+.field{position:relative;width:min(100%,460px);aspect-ratio:1;max-width:100%;margin-inline:auto;border-radius:18px;overflow:hidden;background:var(--tile);border:2px solid var(--line)}
+.cell{position:absolute;width:calc(100%/7);height:calc(100%/7);display:grid;place-items:center}
+.cell.a{background:var(--tile2)}
+.cell.trail::after{content:"";width:22%;height:22%;border-radius:50%;background:var(--trail);opacity:.55}
+.rock{width:80%;height:72%;border-radius:42% 46% 34% 40%;background:#6e7390;box-shadow:inset -5px -6px 0 #565a74,inset 4px 4px 0 #8c91ad}
+.gem,.goal{position:absolute;font-size:clamp(20px,6vw,34px);line-height:1;transition:transform .3s,opacity .3s}
+.goal{animation:bob 1.4s ease-in-out infinite}
+.gem.got{transform:scale(1.8) translateY(-20px);opacity:0}
+.robot{position:absolute;width:calc(100%/7);height:calc(100%/7);display:grid;place-items:center;font-size:clamp(24px,7.5vw,40px);z-index:3;transition:left .25s ease,top .25s ease}
+.robot.bump{animation:shake .35s}
+.robot.yay{animation:jump .45s 3}
+.bubble{position:absolute;bottom:92%;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);font-family:var(--body);font-weight:800;font-size:14px;padding:3px 10px;border-radius:10px;white-space:nowrap;z-index:4}
+.bubble::after{content:"";position:absolute;top:100%;left:50%;margin-left:-6px;border:6px solid transparent;border-top-color:var(--ink)}
+.status{display:flex;justify-content:center;gap:10px;margin-top:10px;flex-wrap:wrap}
+
+details.ref{margin-top:14px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:10px 16px}
+details.ref summary{font-weight:800;cursor:pointer}
+.reft{width:100%;border-collapse:collapse;margin-top:8px;font-size:15px}
+.reft td{padding:6px 4px;border-top:1px solid var(--line);vertical-align:top}
+.reft td:first-child{font-family:var(--mono);white-space:nowrap;padding-right:14px}
+.reftw{overflow-x:auto}
+
+.modal{position:fixed;inset:0;background:rgba(10,12,24,.72);display:grid;place-items:center;z-index:20;padding:16px}
+.mcard{background:var(--panel);border:2px solid var(--accent);border-radius:22px;padding:26px 22px;text-align:center;width:min(100%,420px)}
+.mcard h2{font-family:var(--pixel);font-weight:400;font-size:34px;margin:0;color:var(--accent)}
+.mstars{display:flex;justify-content:center;gap:8px;margin:12px 0}
+.mstars span{font-size:56px;line-height:1;color:var(--line)}
+.mstars span.on{color:var(--accent);animation:pop .45s both}
+.mstars span:nth-child(2){animation-delay:.15s}.mstars span:nth-child(3){animation-delay:.3s}
+.mcard p{margin:4px 0;color:var(--soft)}
+.mcard .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+
+@keyframes blink{50%{opacity:0}}
+@keyframes bob{50%{translate:0 -4px}}
+@keyframes shake{0%,100%{translate:0}25%{translate:-7px}75%{translate:7px}}
+@keyframes jump{50%{translate:0 -12px}}
+@keyframes pop{0%{scale:.2;opacity:0}70%{scale:1.2;opacity:1}100%{scale:1}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:480px){.hl,#code{font-size:16px}.edwrap{height:260px}.speed{margin-left:0}}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="top">
+    <h1 class="logo">ロボコード<span class="cur"></span></h1>
+    <div class="topr">
+      <span class="pill"><span class="s">★</span><b id="starNum">0</b></span>
+      <button class="pill" id="soundBtn">おと：オン</button>
+      <button class="pill" id="resetAllBtn">リセット</button>
+    </div>
+  </header>
+
+  <nav class="stages" id="stages" aria-label="ステージ"></nav>
+
+  <div class="main">
+    <div class="codecol">
+      <div class="mission">
+        <h2 id="mTitle"></h2>
+        <div class="mgoal" id="mGoal"></div>
+        <p class="tip" id="mTip"></p>
+      </div>
+
+      <div class="editor">
+        <div class="edhead"><span class="lights"><i></i><i></i><i></i></span><span id="fname">stage1.robo</span><span class="lc" id="lineCount"></span></div>
+        <div class="edwrap">
+          <pre class="hl" id="hl" aria-hidden="true"></pre>
+          <textarea id="code" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="プログラム"></textarea>
+        </div>
+        <div class="chips" id="chips">
+          <span class="lbl">タップで いれる：</span>
+          <button class="chip d" data-ins="up 1">up</button>
+          <button class="chip d" data-ins="down 1">down</button>
+          <button class="chip d" data-ins="left 1">left</button>
+          <button class="chip d" data-ins="right 1">right</button>
+          <button class="chip k" data-ins="repeat 2&#10;  &#10;end">repeat … end</button>
+          <button class="chip s" data-ins="say hello">say</button>
+        </div>
+        <div class="console info" id="console">プログラムを かいたら「じっこう」を おしてね</div>
+      </div>
+
+      <div class="ctrl">
+        <button class="btn go" id="runBtn">▶ じっこう</button>
+        <button class="btn stop" id="stopBtn" hidden>■ とめる</button>
+        <button class="btn" id="resetBtn">↺ もとに もどす</button>
+        <div class="speed" role="group" aria-label="はやさ">はやさ
+          <button data-sp="650">ゆっくり</button><button data-sp="380" aria-pressed="true">ふつう</button><button data-sp="150">はやい</button>
+        </div>
+      </div>
+
+      <details class="ref" id="ref" open>
+        <summary>めいれい ずかん</summary>
+        <div class="reftw"><table class="reft">
+          <tr><td><span class="t-dir">right</span> <span class="t-num">3</span></td><td>みぎへ 3マス すすむ（かずを かかないと 1マス）</td></tr>
+          <tr><td><span class="t-dir">left</span> / <span class="t-dir">up</span> / <span class="t-dir">down</span></td><td>ひだり / うえ / した へ すすむ</td></tr>
+          <tr><td><span class="t-kw">repeat</span> <span class="t-num">4</span><br>&nbsp;&nbsp;<span class="t-dir">right</span><br><span class="t-kw">end</span></td><td>repeat と end の あいだを 4かい くりかえす</td></tr>
+          <tr><td><span class="t-say">say</span> <span class="t-str">hello</span></td><td>ロボくんが ことばを しゃべる</td></tr>
+          <tr><td><span class="t-com"># メモ</span></td><td># の うしろは メモ。ロボくんは よまないよ</td></tr>
+        </table></div>
+      </details>
+    </div>
+
+    <div class="fieldcol">
+      <div class="field" id="field"></div>
+      <div class="status">
+        <span class="pill">💎 <b id="gemNum">0/0</b></span>
+        <span class="pill">ぎょう <b id="stepInfo">-</b></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="mcard" role="dialog" aria-labelledby="mdTitle">
+    <h2 id="mdTitle">CLEAR!</h2>
+    <div class="mstars" id="mdStars"><span>★</span><span>★</span><span>★</span></div>
+    <p id="mdText"></p>
+    <p id="mdHint"></p>
+    <div class="row">
+      <button class="btn" id="mdRetry">もういちど</button>
+      <button class="btn go" id="mdNext">つぎの ステージ ▶</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="resetModal" hidden>
+  <div class="mcard" role="dialog" aria-labelledby="rsTitle">
+    <h2 id="rsTitle" style="font-size:26px">ほんとうに けす？</h2>
+    <p>★ と ステージの すすみぐあい、かいた プログラムが ぜんぶ きえて、ステージ1 から やりなおしに なるよ。</p>
+    <div class="row">
+      <button class="btn" id="rsNo">やめる</button>
+      <button class="btn stop" id="rsYes">けす</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const store={get(k,d){try{const v=localStorage.getItem('robocode_'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('robocode_'+k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem('robocode_'+k)}catch(e){}}};
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- sound ---------- */
+let ac=null,soundOn=store.get('sound',true);
+function tone(fs,dur,type){ if(!soundOn)return; try{ ac=ac||new (window.AudioContext||window.webkitAudioContext)(); fs.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+i*dur;o.type=type||'square';o.frequency.value=f;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.08,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur+.03);}); }catch(e){} }
+const sfx={step:()=>tone([392],.05),gem:()=>tone([880,1320],.07),ng:()=>tone([200,150],.15,'sawtooth'),win:()=>tone([523,659,784,1047,1319],.11)};
+function speak(t){ if(!soundOn)return; try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang=/^[\x00-\x7f]+$/.test(t)?'en-US':'ja-JP';u.rate=.9;speechSynthesis.speak(u);}catch(e){} }
+function renderSound(){$('#soundBtn').textContent=soundOn?'おと：オン':'おと：オフ';}
+$('#soundBtn').onclick=()=>{soundOn=!soundOn;store.set('sound',soundOn);renderSound();};
+renderSound();
+
+/* ---------- stages ---------- */
+// S=スタート G=ゴール #=いわ *=ジェム
+const STAGES=[
+ {name:'まっすぐ すすめ',target:1,map:['.......','.......','.......','S....G.','.......','.......','.......'],
+  tip:'right 5 と うって「じっこう」を おしてみよう。\nright は みぎ、5 は 5マス という いみだよ。',starter:'# ここに めいれいを かいてね\n'},
+ {name:'まがりかど',target:2,map:['S......','.......','.......','....G..','.......','.......','.......'],
+  tip:'1ぎょうに めいれいは 1つ。\nright の つぎの ぎょうに down を かいてみよう。'},
+ {name:'いわを よけて',target:3,map:['.......','.S..#..','....#..','....#.G','.......','.......','.......'],
+  tip:'いわに ぶつかると とまって しまうよ。\nうえか したから まわりこもう。'},
+ {name:'ジェムを ひろえ',target:2,map:['.......','.S.*...','.......','.....*.','.......','.....G.','.......'],
+  tip:'💎 を ぜんぶ ひろってから ⭐ へ。\n💎 の うえを とおるだけで ひろえるよ。'},
+ {name:'かいだん',target:3,map:['S......','.*.....','..*....','...*...','....*..','.....*.','......G'],
+  tip:'right 1 → down 1 を 6かい…。おなじ うごきは repeat で まとめよう！\n\nrepeat 6\n  right 1\n  down 1\nend'},
+ {name:'おおきな かいだん',target:3,map:['S...#..','...#...','..*....','.....#.','....*..','.#.....','.....*G'],
+  tip:'こんどは 2マスずつの かいだん。\nrepeat の かずと、なかの かずを かんがえよう。'},
+ {name:'ともだちに あいさつ',target:3,needSay:true,map:['.......','.S.....','.......','...#...','.......','.....G.','.......'],
+  tip:'🐱 の ところまで いったら say hello と あいさつ しよう。\nsay の あとには すきな ことばを かけるよ。'},
+ {name:'へびみち',target:5,map:['S..*...','..*....','.....*.','.*.....','....*..','...*...','......G'],
+  tip:'みぎへ いって、1つ おりて、ひだりへ いって、1つ おりて…。\nこの 4つを repeat で くりかえすと みじかく かけるよ。'},
+ {name:'めいろ',target:5,map:['S...#..','.##.#.#','#.#*#..','..#.##.','#...#..','#.##.#.','#..*..G'],
+  tip:'みちを よく みて、まがる ばしょを かぞえよう。\nマスの かずを まちがえないでね。'},
+ {name:'ジェム ハンター',target:3,noGoal:true,map:['S.....*','.......','..###..','..#.#..','..###..','.......','*.....*'],
+  tip:'ゴールは ないよ。すみっこの 💎 を 3つ ぜんぶ あつめたら クリア！'}
+];
+const N=7;
+const DIRS={up:[-1,0],down:[1,0],left:[0,-1],right:[0,1]};
+const ALIAS={'みぎ':'right','ひだり':'left','うえ':'up','した':'down','くりかえす':'repeat','おわり':'end','いう':'say'};
+const WORDS=['up','down','left','right','repeat','end','say'];
+
+let sIdx=0, S=null, pos=null, gems=null, speed=380, run={active:false,token:0};
+function parseMap(st){
+  const g=st.map.map(r=>[...r]); let start,goal=null; const gl=[];
+  g.forEach((row,r)=>row.forEach((ch,c)=>{ if(ch==='S')start={r,c}; if(ch==='G')goal={r,c}; if(ch==='*')gl.push(r+','+c); }));
+  return {...st,g,start,goal,gemList:gl};
+}
+const isRock=(r,c)=>S.g[r][c]==='#';
+const outside=(r,c)=>r<0||c<0||r>=N||c>=N;
+
+/* ---------- stars / progress ---------- */
+function bestOf(i){return store.get('best'+i,0);}
+function unlocked(){return store.get('unlocked',1);}
+function totalStars(){let t=0;for(let i=0;i<STAGES.length;i++)t+=bestOf(i);return t;}
+function renderStages(){
+  const un=unlocked();
+  $('#stages').innerHTML=STAGES.map((s,i)=>{const b=bestOf(i);return `<button class="stg ${i===sIdx?'on':''}" data-i="${i}" ${i>=un?'disabled':''} aria-label="ステージ ${i+1}">${i>=un?'🔒':i+1}<small>${b?'★'.repeat(b)+`<span class="o">${'★'.repeat(3-b)}</span>`:''}</small></button>`;}).join('');
+  $('#stages').querySelectorAll('.stg').forEach(b=>b.onclick=()=>loadStage(+b.dataset.i));
+  $('#starNum').textContent=totalStars();
+}
+
+/* ---------- editor ---------- */
+const ta=$('#code'), hl=$('#hl');
+let runLine=-1, badLine=-1;
+function tokLine(raw){
+  const h=raw.indexOf('#'); let code=h>=0?raw.slice(0,h):raw, com=h>=0?raw.slice(h):'';
+  const m=code.match(/^(\s*)(\S+)?(.*)$/); let out=esc(m[1]);
+  if(m[2]){
+    let w=m[2], lw=w.toLowerCase(), key=ALIAS[lw]||lw, rest=m[3];
+    const glued=lw.match(/^([a-z]+)(\d+)$/);
+    if(glued&&DIRS[glued[1]]){ out+=`<span class="t-dir">${esc(w.slice(0,glued[1].length))}</span><span class="t-num">${esc(w.slice(glued[1].length))}</span>`; }
+    else if(DIRS[key]) out+=`<span class="t-dir">${esc(w)}</span>`;
+    else if(key==='repeat'||key==='end') out+=`<span class="t-kw">${esc(w)}</span>`;
+    else if(key==='say'){ out+=`<span class="t-say">${esc(w)}</span><span class="t-str">${esc(rest)}</span>`; rest=''; }
+    else out+=esc(w);
+    out+=esc(rest).replace(/\d+/g,'<span class="t-num">$&</span>');
+  }
+  if(com) out+=`<span class="t-com">${esc(com)}</span>`;
+  return out;
+}
+function renderHL(){
+  const lines=ta.value.split('\n');
+  hl.innerHTML=lines.map((l,i)=>`<span class="l ${i===runLine?'run':''} ${i===badLine?'bad':''}"><span class="ln">${i+1}</span>${tokLine(l)}</span>`).join('');
+  hl.scrollTop=ta.scrollTop; hl.scrollLeft=ta.scrollLeft;
+  let n=0; try{n=parse(ta.value).count;}catch(e){n=null;}
+  $('#lineCount').textContent = n==null ? 'めいれい ?こ' : `めいれい ${n}こ（めやす ${S.target}こ）`;
+}
+let saveT=null;
+ta.addEventListener('input',()=>{ badLine=-1; renderHL(); clearTimeout(saveT); saveT=setTimeout(()=>store.set('code'+sIdx,ta.value),300); });
+ta.addEventListener('scroll',()=>{hl.scrollTop=ta.scrollTop;hl.scrollLeft=ta.scrollLeft;});
+ta.addEventListener('keydown',e=>{
+  if(e.isComposing) return;
+  if(e.key==='Tab'){ e.preventDefault(); insertAtCursor('  '); }
+  else if(e.key==='Enter'&&!e.shiftKey){
+    if(e.metaKey||e.ctrlKey){ e.preventDefault(); execute(); return; }
+    e.preventDefault();
+    const before=ta.value.slice(0,ta.selectionStart), line=before.slice(before.lastIndexOf('\n')+1);
+    let ind=line.match(/^\s*/)[0]; if(/^\s*(repeat|くりかえす)\b/i.test(line)) ind+='  ';
+    insertAtCursor('\n'+ind);
+  }
+});
+function insertAtCursor(text){
+  const s=ta.selectionStart,e=ta.selectionEnd;
+  ta.setRangeText(text,s,e,'end'); ta.dispatchEvent(new Event('input'));
+}
+document.querySelectorAll('#chips .chip').forEach(b=>b.onclick=()=>{
+  if(run.active) return;
+  const s=ta.selectionStart, before=ta.value.slice(0,s), line=before.slice(before.lastIndexOf('\n')+1);
+  const ind=line.match(/^\s*/)[0];
+  let text=b.dataset.ins.replace(/\n/g,'\n'+ind);
+  if(line.trim()) text='\n'+ind+text;
+  ta.focus(); ta.setSelectionRange(s,s); insertAtCursor(text);
+  if(b.dataset.ins.startsWith('repeat')){ // カーソルを repeat の なかへ
+    const p=ta.selectionStart-('\n'+ind+'end').length; ta.setSelectionRange(p,p);
+  }
+});
+
+/* ---------- parser ---------- */
+class PErr{constructor(line,msg){this.line=line;this.msg=msg;}}
+function norm(s){return s.replace(/[！-～]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/　/g,' ');}
+function lev(a,b){const d=Array.from({length:a.length+1},(_,i)=>[i]);for(let j=1;j<=b.length;j++)d[0][j]=j;for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[a.length][b.length];}
+function suggest(w){let best=null,bd=3;for(const k of WORDS){const d=lev(w,k);if(d<bd){bd=d;best=k;}}return bd<=2?best:null;}
+function parse(src){
+  const lines=src.split('\n'), root={body:[]}, stack=[root]; let count=0;
+  for(let i=0;i<lines.length;i++){
+    let raw=norm(lines[i]); const h=raw.indexOf('#'); if(h>=0) raw=raw.slice(0,h);
+    raw=raw.replace(/[()]/g,' ').trim(); if(!raw) continue;
+    let parts=raw.split(/\s+/);
+    const glued=parts[0].toLowerCase().match(/^([a-z]+)(\d+)$/);
+    if(glued&&(DIRS[glued[1]]||glued[1]==='repeat')) parts=[glued[1],glued[2],...parts.slice(1)];
+    let w=parts[0].toLowerCase(); w=ALIAS[w]||w;
+    const top=stack[stack.length-1];
+    if(DIRS[w]){
+      let n=1;
+      if(parts.length>2) throw new PErr(i,`${w} の あとには かずを 1つだけ かいてね（れい: ${w} 3）`);
+      if(parts[1]!=null){
+        if(!/^\d+$/.test(parts[1])) throw new PErr(i,`「${parts[1]}」は かずじゃ ないみたい。${w} 3 のように かいてね`);
+        n=+parts[1]; if(n<1||n>9) throw new PErr(i,'すすむ かずは 1 から 9 までだよ');
+      }
+      top.body.push({t:'move',d:w,n,line:i}); count++;
+    }else if(w==='repeat'){
+      if(parts.length!==2||!/^\d+$/.test(parts[1])) throw new PErr(i,'repeat の あとに くりかえす かずを かいてね（れい: repeat 3）');
+      const n=+parts[1]; if(n<1||n>20) throw new PErr(i,'くりかえす かずは 1 から 20 までだよ');
+      const node={t:'repeat',n,body:[],line:i}; top.body.push(node); stack.push(node); count++;
+    }else if(w==='end'){
+      if(stack.length===1) throw new PErr(i,'end が おおすぎるよ。repeat と end は 2こで 1セットだよ');
+      const node=stack.pop(); if(!node.body.length) throw new PErr(node.line,'repeat と end の あいだに めいれいが ないよ');
+    }else if(w==='say'){
+      const text=raw.slice(parts[0].length).trim();
+      if(!text) throw new PErr(i,'say の あとに いいたい ことばを かいてね（れい: say hello）');
+      top.body.push({t:'say',text:text.slice(0,24),line:i}); count++;
+    }else{
+      const s=suggest(w);
+      throw new PErr(i,`「${parts[0]}」は しらない めいれいだよ。`+(s?`「${s}」の まちがいかな？`:'めいれい ずかんを みてね'));
+    }
+  }
+  if(stack.length>1) throw new PErr(stack[stack.length-1].line,'repeat の おわりに end を かいてね');
+  return {body:root.body,count};
+}
+function flatten(body,out){
+  for(const n of body){
+    if(out.length>500) throw new PErr(n.line,'うごきが おおすぎるよ（500かい まで）');
+    if(n.t==='move') for(let k=0;k<n.n;k++) out.push({t:'move',d:n.d,line:n.line});
+    else if(n.t==='say') out.push(n);
+    else for(let k=0;k<n.n;k++) flatten(n.body,out);
+  }
+  return out;
+}
+
+/* ---------- field ---------- */
+const pct=v=>(v*100/N)+'%';
+function buildField(){
+  let h='';
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+    const ch=S.g[r][c];
+    h+=`<div class="cell ${(r+c)%2?'a':''}" id="c${r}_${c}" style="top:${pct(r)};left:${pct(c)}">`+
+       (ch==='#'?'<div class="rock"></div>':'')+
+       (ch==='*'?`<span class="gem" id="g${r}_${c}">💎</span>`:'')+
+       (ch==='G'?`<span class="goal">${S.needSay?'🐱':'⭐'}</span>`:'')+`</div>`;
+  }
+  h+='<div class="robot" id="robot">🤖</div>';
+  $('#field').innerHTML=h;
+}
+function resetField(){
+  pos={...S.start}; gems=new Set(S.gemList);
+  document.querySelectorAll('.cell.trail').forEach(c=>c.classList.remove('trail'));
+  document.querySelectorAll('.gem').forEach(g=>g.classList.remove('got'));
+  const rb=$('#robot'); rb.classList.remove('yay','bump'); rb.innerHTML='🤖';
+  placeRobot(); updateGems();
+}
+function placeRobot(){const rb=$('#robot');rb.style.top=pct(pos.r);rb.style.left=pct(pos.c);}
+function updateGems(){const t=S.gemList.length;$('#gemNum').textContent=`${t-gems.size}/${t}`;}
+const onGoal=()=>S.goal&&pos.r===S.goal.r&&pos.c===S.goal.c;
+function bump(){const rb=$('#robot');rb.classList.remove('bump');void rb.offsetWidth;rb.classList.add('bump');sfx.ng();}
+function bubble(t){const rb=$('#robot');rb.innerHTML=`🤖<span class="bubble">${esc(t)}</span>`;}
+
+/* ---------- console ---------- */
+function log(msg,kind){const c=$('#console');c.className='console '+(kind||'info');c.textContent=msg;}
+function showErr(e){badLine=e.line;runLine=-1;renderHL();log(`${e.line+1}ぎょうめ： ${e.msg}`,'err');}
+
+/* ---------- run ---------- */
+function setRunning(on){
+  run.active=on; ta.readOnly=on;
+  $('#runBtn').hidden=on; $('#stopBtn').hidden=!on;
+  document.querySelectorAll('#chips .chip,.stg').forEach(b=>{ if(on) b.dataset.was=b.disabled; b.disabled=on?true:(b.dataset.was==='true'); });
+  if(!on) renderStages();
+}
+async function execute(){
+  if(run.active) return;
+  badLine=-1; runLine=-1;
+  let prog,steps;
+  try{ prog=parse(ta.value); steps=flatten(prog.body,[]); }
+  catch(e){ if(e instanceof PErr){ showErr(e); sfx.ng(); return; } throw e; }
+  if(!steps.length){ log('まだ めいれいが ないよ。right 1 などを かいてみてね','err'); return; }
+  resetField(); renderHL();
+  const tok=++run.token; setRunning(true); log('▶ じっこう ちゅう…','info');
+  await sleep(250);
+  for(let i=0;i<steps.length;i++){
+    if(tok!==run.token) return;
+    const st=steps[i]; runLine=st.line; renderHL(); $('#stepInfo').textContent=st.line+1;
+    if(st.t==='move'){
+      const [dr,dc]=DIRS[st.d], nr=pos.r+dr, nc=pos.c+dc;
+      if(outside(nr,nc)){ bump(); showErr(new PErr(st.line,'そっちは そとだよ！ フィールドの はしに ぶつかった')); return setRunning(false); }
+      if(isRock(nr,nc)){ bump(); showErr(new PErr(st.line,'いわに ぶつかった！ みちを かえてみよう')); return setRunning(false); }
+      $(`#c${pos.r}_${pos.c}`).classList.add('trail');
+      pos={r:nr,c:nc}; placeRobot();
+      const k=nr+','+nc;
+      if(gems.has(k)){ gems.delete(k); $(`#g${nr}_${nc}`).classList.add('got'); sfx.gem(); updateGems(); } else sfx.step();
+      await sleep(speed);
+      if(tok!==run.token) return;
+      if(!S.needSay && gems.size===0 && (S.noGoal||onGoal())) return win(prog.count,tok);
+    }else{
+      bubble(st.text); speak(st.text);
+      await sleep(Math.max(900,speed*2));
+      if(tok!==run.token) return;
+      if(S.needSay && onGoal() && gems.size===0) return win(prog.count,tok);
+    }
+  }
+  runLine=-1; renderHL(); sfx.ng();
+  let msg='プログラムが おわったよ。';
+  if(gems.size) msg+=`💎 が あと ${gems.size}こ のこってる！`;
+  else if(S.needSay&&onGoal()) msg+='🐱 に あいさつ（say）してみよう！';
+  else if(S.needSay) msg+='🐱 の ところで say を つかおう！';
+  else msg+='⭐ まで あと すこし！';
+  log(msg,'err'); setRunning(false);
+}
+$('#runBtn').onclick=execute;
+$('#stopBtn').onclick=()=>{ run.token++; setRunning(false); runLine=-1; renderHL(); log('とめたよ。「じっこう」で もういちど はじめから うごくよ','info'); };
+$('#resetBtn').onclick=()=>{ if(run.active){run.token++;setRunning(false);} runLine=-1; badLine=-1; renderHL(); resetField(); $('#stepInfo').textContent='-'; log('ロボくんを スタートに もどしたよ','info'); };
+document.querySelectorAll('.speed button').forEach(b=>b.onclick=()=>{ speed=+b.dataset.sp; document.querySelectorAll('.speed button').forEach(x=>x.setAttribute('aria-pressed',x===b)); store.set('speed',speed); });
+
+async function win(count,tok){
+  runLine=-1; renderHL(); $('#robot').classList.add('yay'); sfx.win();
+  log('🎉 クリア！','ok');
+  await sleep(900);
+  if(tok!==run.token) return;
+  setRunning(false);
+  const n = count<=S.target?3 : count<=S.target+2?2 : 1;
+  if(n>bestOf(sIdx)) store.set('best'+sIdx,n);
+  if(sIdx+2>unlocked()) store.set('unlocked',Math.min(STAGES.length,sIdx+2));
+  renderStages();
+  [...$('#mdStars').children].forEach((s,i)=>{s.className='';void s.offsetWidth;s.className=i<n?'on':'';});
+  $('#mdText').textContent=`めいれい ${count}こ で クリアしたよ！`;
+  $('#mdHint').textContent = n===3 ? 'めやすの かず いないで かけた！ プログラマー みたい！' : `めやすは ${S.target}こ。repeat を つかうと もっと みじかく なるかも？`;
+  const last=sIdx+1>=STAGES.length;
+  $('#mdNext').hidden=last;
+  $('#mdTitle').textContent= last ? 'ALL CLEAR!' : 'CLEAR!';
+  $('#modal').hidden=false; $('#mdNext').hidden ? $('#mdRetry').focus() : $('#mdNext').focus();
+}
+$('#mdRetry').onclick=()=>{ $('#modal').hidden=true; resetField(); };
+$('#mdNext').onclick=()=>{ $('#modal').hidden=true; loadStage(sIdx+1); };
+
+/* ---------- reset ---------- */
+$('#resetAllBtn').onclick=()=>{ $('#resetModal').hidden=false; $('#rsNo').focus(); };
+$('#rsNo').onclick=()=>{ $('#resetModal').hidden=true; };
+$('#rsYes').onclick=()=>{
+  clearTimeout(saveT);
+  for(let i=0;i<STAGES.length;i++){ store.del('best'+i); store.del('code'+i); }
+  store.del('unlocked'); store.del('last');
+  $('#resetModal').hidden=true; $('#modal').hidden=true;
+  loadStage(0);
+  log('★ と プログラムを リセットしたよ。ステージ1 から はじめよう！','info');
+};
+
+/* ---------- load ---------- */
+function loadStage(i){
+  if(run.active){run.token++;setRunning(false);}
+  sIdx=i; store.set('last',i); S=parseMap(STAGES[i]);
+  $('#mTitle').textContent=`ステージ ${i+1}　${S.name}`;
+  $('#mGoal').textContent = S.noGoal ? 'もくてき：💎 を ぜんぶ あつめる' : S.needSay ? 'もくてき：🐱 の ところで say で あいさつ' : (S.gemList.length?'もくてき：💎 を ぜんぶ ひろって ⭐ へ':'もくてき：⭐ まで いく');
+  $('#mTip').textContent=S.tip;
+  $('#fname').textContent=`stage${i+1}.robo`;
+  ta.value=store.get('code'+i,null) ?? (STAGES[i].starter||'');
+  runLine=-1; badLine=-1; buildField(); resetField(); renderHL(); renderStages();
+  $('#stepInfo').textContent='-';
+  log('プログラムを かいたら「じっこう」を おしてね（Ctrl/⌘ + Enter でも うごくよ）','info');
+}
+speed=store.get('speed',380);
+document.querySelectorAll('.speed button').forEach(x=>x.setAttribute('aria-pressed',+x.dataset.sp===speed));
+let start=Math.min(store.get('last',0),unlocked()-1);
+loadStage(Math.max(0,start));
+})();
+</script>
+</body>
+</html>
