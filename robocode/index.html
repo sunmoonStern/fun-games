@@ -27,17 +27,19 @@ body{background:var(--bg);color:var(--ink);font-family:var(--body);font-weight:5
   background-image:linear-gradient(var(--panel) 1px,transparent 1px),linear-gradient(90deg,var(--panel) 1px,transparent 1px);background-size:32px 32px}
 button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer}
 button:disabled{opacity:.4;cursor:not-allowed}
-button:focus-visible{outline:3px solid var(--dir);outline-offset:2px}
+button:focus-visible,a:focus-visible{outline:3px solid var(--dir);outline-offset:2px}
 code{font-family:var(--mono);background:var(--panel2);border-radius:6px;padding:1px 6px;color:var(--dir)}
 .app{max-width:1120px;margin:0 auto}
 
 .top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-block:14px}
 .logo{font-family:var(--pixel);font-size:30px;letter-spacing:.06em;display:flex;align-items:center;gap:10px;margin:0;font-weight:400}
 .logo .cur{display:inline-block;width:.55em;height:1em;background:var(--accent);animation:blink 1s steps(1) infinite;vertical-align:-3px}
-.topr{display:flex;gap:8px;align-items:center}
+.topr{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .pill{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:4px 14px;font-weight:800;display:inline-flex;gap:6px;align-items:center}
 .pill .s{color:var(--accent)}
 .pill b{font-variant-numeric:tabular-nums}
+a.pill{color:inherit;text-decoration:none}
+a.pill:hover{border-color:currentColor}
 
 .stages{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;margin-bottom:6px}
 .stg{flex:0 0 auto;width:58px;border-radius:12px;border:1px solid var(--line);background:var(--panel);padding:6px 0 4px;display:flex;flex-direction:column;align-items:center;font-family:var(--pixel);font-size:20px;line-height:1.2}
@@ -58,7 +60,11 @@ code{font-family:var(--mono);background:var(--panel2);border-radius:6px;padding:
 .edhead{display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--panel2);border-bottom:1px solid var(--line);font-family:var(--mono);font-size:14px;color:var(--soft)}
 .edhead .lights{display:flex;gap:6px}.edhead .lights i{width:11px;height:11px;border-radius:50%;background:var(--kw)}
 .edhead .lights i:nth-child(2){background:var(--num)}.edhead .lights i:nth-child(3){background:var(--ok)}
+.edhead{flex-wrap:wrap}
 .edhead .lc{margin-left:auto;font-variant-numeric:tabular-nums}
+.mtabs{display:flex;gap:4px}
+.mtab{font-family:var(--body);font-size:13px;font-weight:800;border:1px solid var(--line);background:var(--panel);color:var(--soft);border-radius:8px;padding:2px 10px}
+.mtab[aria-selected="true"]{background:var(--accent);color:var(--bg);border-color:var(--accent)}
 .edwrap{position:relative;height:300px;background:var(--bg)}
 .edwrap:focus-within{box-shadow:inset 0 0 0 2px var(--dir)}
 .hl,#code{position:absolute;inset:0;margin:0;border:0;font-family:var(--mono);font-size:18px;line-height:1.75;white-space:pre;tab-size:2;padding:12px 14px 40px 12px;letter-spacing:0}
@@ -71,6 +77,36 @@ code{font-family:var(--mono);background:var(--panel2);border-radius:6px;padding:
 .hl .l.bad{background:var(--err-bg)}
 .hl .l.bad .ln{color:var(--err)}
 .t-dir{color:var(--dir);font-weight:700}.t-kw{color:var(--kw);font-weight:700}.t-num{color:var(--num)}.t-str{color:var(--str)}.t-com{color:var(--com);font-style:italic}.t-say{color:var(--str);font-weight:700}
+
+/* blocks: palette on the left, one script under the "じっこう したら" hat; repeat is a C-shaped block */
+.bpane{display:grid;grid-template-columns:auto minmax(0,1fr);min-height:300px;background:var(--bg)}
+.bpane.locked{pointer-events:none}
+.palette{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:10px;background:var(--panel);border-right:1px solid var(--line);transition:background .15s}
+.palette.trash{background:var(--err-bg)}
+.plbl{font-size:12px;line-height:1.5;color:var(--soft)}
+.bscript{display:flex;flex-direction:column;align-items:flex-start;padding:12px 12px 20px;overflow-x:auto}
+.hat{background:var(--ok);color:#10301f;font-weight:800;font-size:15px;padding:6px 14px 4px;border-radius:16px 16px 4px 4px;box-shadow:0 3px 0 rgba(0,0,0,.35)}
+.blist{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.blist.root{flex:1;align-self:stretch;min-height:160px;padding-top:4px}
+.blist:empty::before{content:"ここに いれる";font-size:12px;color:var(--com);padding:4px 6px}
+.blist.root:empty::before{content:"ここに ブロックを ならべよう"}
+.blk{--c:var(--dir);display:inline-flex;align-items:center;gap:6px;background:var(--c);color:#0f1a2e;font-family:var(--body);font-weight:800;font-size:15px;line-height:1.3;border:0;border-radius:8px;padding:6px 10px;box-shadow:0 3px 0 rgba(0,0,0,.35);touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;white-space:nowrap;text-align:left}
+.b-say{--c:var(--str)}
+.b-repeat{--c:var(--kw);flex-direction:column;align-items:stretch;gap:0;padding:0}
+.b-repeat>.bhead{display:flex;align-items:center;gap:6px;padding:6px 10px}
+.b-repeat>.blist{margin-left:16px;background:var(--bg);border-radius:6px 0 0 6px;padding:4px 0 4px 4px;min-height:34px;min-width:80px}
+.b-repeat>.bfoot{display:block;height:14px;border-radius:0 0 8px 8px}
+.bw{font-family:var(--mono);font-size:12px;font-weight:700;background:rgba(0,0,0,.18);border-radius:5px;padding:0 5px}
+.bnum,.btxt{font-family:var(--body);font-size:15px;font-weight:800;color:#0f1a2e;background:#fff;border:0;border-radius:6px;padding:1px 4px}
+.bnum.s{display:inline-block;min-width:1.6em;text-align:center}
+.btxt{width:7.5em}
+.bdel{background:rgba(0,0,0,.2);color:inherit;border:0;border-radius:50%;width:22px;height:22px;padding:0;font-size:13px;line-height:22px;margin-left:2px}
+.blk.run{outline:3px solid var(--accent);outline-offset:2px}
+.blk.bad{outline:3px solid var(--err);outline-offset:2px}
+.blk.ghost{position:fixed;z-index:30;pointer-events:none;opacity:.92;rotate:-2deg;margin:0}
+.bind{position:fixed;z-index:29;height:4px;width:120px;border-radius:2px;background:var(--accent);pointer-events:none}
+body.dragging,body.dragging *{cursor:grabbing!important}
+@media (max-width:540px){.bpane{grid-template-columns:minmax(0,1fr)}.palette{flex-direction:row;flex-wrap:wrap;border-right:0;border-bottom:1px solid var(--line)}.plbl{flex-basis:100%}}
 
 .chips{display:flex;gap:6px;flex-wrap:wrap;padding:10px 12px;border-top:1px solid var(--line)}
 .chip{font-family:var(--mono);font-size:14px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);padding:4px 10px}
@@ -136,6 +172,7 @@ details.ref summary{font-weight:800;cursor:pointer}
   <header class="top">
     <h1 class="logo">ロボコード<span class="cur"></span></h1>
     <div class="topr">
+      <a class="pill back" href="../" title="ゲームを えらぶ ページへ もどる">← あそびば</a>
       <span class="pill"><span class="s">★</span><b id="starNum">0</b></span>
       <button class="pill" id="soundBtn">おと：オン</button>
       <button class="pill" id="resetAllBtn">リセット</button>
@@ -153,8 +190,21 @@ details.ref summary{font-weight:800;cursor:pointer}
       </div>
 
       <div class="editor">
-        <div class="edhead"><span class="lights"><i></i><i></i><i></i></span><span id="fname">stage1.robo</span><span class="lc" id="lineCount"></span></div>
-        <div class="edwrap">
+        <div class="edhead"><span class="lights"><i></i><i></i><i></i></span><span id="fname">stage1.robo</span><span class="lc" id="lineCount"></span>
+          <div class="mtabs" role="tablist" aria-label="かきかた">
+            <button class="mtab" role="tab" data-mode="blocks">🧩 ブロック</button><button class="mtab" role="tab" data-mode="code">⌨️ コード</button>
+          </div>
+        </div>
+        <div class="bpane" id="bpane" hidden>
+          <div class="palette" id="palette" aria-label="ブロック">
+            <span class="plbl">タップか ドラッグで いれる<br>ここへ もどすと けせる</span>
+          </div>
+          <div class="bscript" id="bscript">
+            <div class="hat">▶ じっこう したら</div>
+            <div class="blist root" id="broot"></div>
+          </div>
+        </div>
+        <div class="edwrap" id="edwrap">
           <pre class="hl" id="hl" aria-hidden="true"></pre>
           <textarea id="code" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="プログラム"></textarea>
         </div>
@@ -313,6 +363,7 @@ function renderHL(){
   const lines=ta.value.split('\n');
   hl.innerHTML=lines.map((l,i)=>`<span class="l ${i===runLine?'run':''} ${i===badLine?'bad':''}"><span class="ln">${i+1}</span>${tokLine(l)}</span>`).join('');
   hl.scrollTop=ta.scrollTop; hl.scrollLeft=ta.scrollLeft;
+  markBlocks();
   let n=0; try{n=parse(ta.value).count;}catch(e){n=null;}
   $('#lineCount').textContent = n==null ? 'めいれい ?こ' : `めいれい ${n}こ（めやす ${S.target}こ）`;
 }
@@ -398,6 +449,153 @@ function flatten(body,out){
   return out;
 }
 
+
+/* ---------- blocks ----------
+   The text in the editor stays the single source of truth: blocks are generated from parse(),
+   and every block edit regenerates the text, so run/★/save all go through the existing code. */
+const prefMode=()=>store.get('mode','blocks')==='code'?'code':'blocks';
+let mode=prefMode(), prog=[], press=null, lastDragEnd=0;
+const DLABEL={right:'→ みぎへ',left:'← ひだりへ',up:'↑ うえへ',down:'↓ したへ'};
+const TPL={right:{t:'move',d:'right',n:1},left:{t:'move',d:'left',n:1},up:{t:'move',d:'up',n:1},down:{t:'move',d:'down',n:1},repeat:{t:'repeat',n:2,body:[]},say:{t:'say',text:'hello'}};
+const clone=o=>JSON.parse(JSON.stringify(o));
+const escA=s=>esc(s).replace(/"/g,'&quot;');
+const broot=$('#broot'), bscript=$('#bscript'), palette=$('#palette');
+function toModel(body){return body.map(n=>n.t==='move'?{t:'move',d:n.d,n:n.n}:n.t==='say'?{t:'say',text:n.text}:{t:'repeat',n:n.n,body:toModel(n.body)});}
+function gen(list,ind){ind=ind||'';let out='';for(const n of list){
+  if(n.t==='move') out+=`${ind}${n.d} ${n.n}\n`;
+  else if(n.t==='say') out+=`${ind}say ${n.text}\n`;
+  else out+=`${ind}repeat ${n.n}\n`+gen(n.body,ind+'  ')+`${ind}end\n`;
+}return out;}
+function numUI(v,max,live){
+  if(!live) return `<span class="bnum s">${v}</span>`;
+  let h='<select class="bnum" aria-label="かず">';for(let i=1;i<=max;i++)h+=`<option${i===v?' selected':''}>${i}</option>`;return h+'</select>';
+}
+// live=true: a block in the script (editable). ctr numbers blocks in the same order gen() writes lines.
+function blockEl(node,list,ctr,live,tag){
+  const el=document.createElement(tag||'div'); el.className='blk b-'+node.t; el._node=node; el._list=list;
+  if(ctr) el.dataset.line=ctr.n++;
+  const del=live?'<button class="bdel" aria-label="この ブロックを けす">×</button>':'';
+  if(node.t==='move') el.innerHTML=`<span class="bw">${node.d}</span>${DLABEL[node.d]}${numUI(node.n,9,live)}マス${del}`;
+  else if(node.t==='say') el.innerHTML=`<span class="bw">say</span>💬`+(live?`<input class="btxt" maxlength="24" value="${escA(node.text)}" aria-label="いう ことば">`:`<span class="bnum s">${esc(node.text)}</span>`)+`と いう${del}`;
+  else{
+    el.innerHTML=`<span class="bhead"><span class="bw">repeat</span>${numUI(node.n,20,live)}かい くりかえす${del}</span><span class="blist"></span><span class="bfoot"></span>`;
+    const inner=el.children[1]; inner._list=node.body;
+    node.body.forEach(c=>inner.appendChild(blockEl(c,node.body,ctr,live)));
+    if(ctr) ctr.n++; // the "end" line
+  }
+  return el;
+}
+function renderBlocks(){
+  broot.innerHTML=''; broot._list=prog;
+  const ctr={n:0}; prog.forEach(n=>broot.appendChild(blockEl(n,prog,ctr,true)));
+  markBlocks();
+}
+function markBlocks(){
+  if(mode!=='blocks') return;
+  broot.querySelectorAll('.blk').forEach(b=>{b.classList.toggle('run',+b.dataset.line===runLine);b.classList.toggle('bad',+b.dataset.line===badLine);});
+}
+function sync(){ ta.value=gen(prog); ta.dispatchEvent(new Event('input')); }
+
+// palette
+Object.keys(TPL).forEach(k=>{
+  const b=blockEl(TPL[k],null,null,false,'button'); b.dataset.tpl=k;
+  b.setAttribute('aria-label',(k==='repeat'?'くりかえし':k==='say'?'say':DLABEL[k])+' の ブロックを いれる');
+  b.onclick=()=>{ if(run.active||Date.now()-lastDragEnd<400) return; prog.push(clone(TPL[k])); renderBlocks(); sync(); sfx.step(); };
+  palette.appendChild(b);
+});
+
+// edits inside the script
+broot.addEventListener('change',e=>{ if(e.target.matches('select.bnum')){ e.target.closest('.blk')._node.n=+e.target.value; sync(); } });
+broot.addEventListener('input',e=>{ if(e.target.matches('.btxt')){ const v=e.target.value.replace(/[#\n]/g,''); if(v!==e.target.value) e.target.value=v; e.target.closest('.blk')._node.text=v.trim(); sync(); } });
+broot.addEventListener('click',e=>{ const d=e.target.closest('.bdel'); if(!d) return; const el=d.closest('.blk'); el._list.splice(el._list.indexOf(el._node),1); renderBlocks(); sync(); });
+
+// drag & drop (pointer events: mouse and touch)
+function onDown(e,src){
+  if(run.active||(e.button!=null&&e.button>0)||e.target.closest('select,input,.bdel')) return;
+  const el=e.target.closest('.blk'); if(!el) return;
+  e.preventDefault();
+  press={el,src,id:e.pointerId,x:e.clientX,y:e.clientY,drag:false};
+}
+palette.addEventListener('pointerdown',e=>onDown(e,'palette'));
+broot.addEventListener('pointerdown',e=>onDown(e,'script'));
+function inside(el,x,y,pad){const r=el.getBoundingClientRect();pad=pad||0;return x>=r.left-pad&&x<=r.right+pad&&y>=r.top-pad&&y<=r.bottom+pad;}
+function findDrop(x,y){
+  if(!inside(bscript,x,y,30)) return null;
+  let best=null,bd=Infinity;
+  [broot,...broot.querySelectorAll('.blist')].forEach(L=>{
+    const lr=L.getBoundingClientRect(), kids=[...L.children], ys=[];
+    if(!kids.length) ys.push(lr.top+4); else { kids.forEach(k=>ys.push(k.getBoundingClientRect().top)); ys.push(kids[kids.length-1].getBoundingClientRect().bottom+2); }
+    ys.forEach((cy,i)=>{ const d=Math.abs(y-cy)+(x<lr.left-6?(lr.left-x)*3:0); if(d<bd){bd=d;best={list:L._list,i,y:cy,x:lr.left};} });
+  });
+  return best;
+}
+window.addEventListener('pointermove',e=>{
+  if(!press||e.pointerId!==press.id) return;
+  const p=press;
+  if(!p.drag){
+    if(Math.hypot(e.clientX-p.x,e.clientY-p.y)<6) return;
+    const r=p.el.getBoundingClientRect();
+    if(p.src==='palette') p.node=clone(TPL[p.el.dataset.tpl]);
+    else { p.node=p.el._node; p.orig={list:p.el._list,i:p.el._list.indexOf(p.node)}; p.orig.list.splice(p.orig.i,1); }
+    p.drag=true; p.dx=p.x-r.left; p.dy=p.y-r.top;
+    p.ghost=blockEl(p.node,null,null,false); p.ghost.classList.add('ghost'); document.body.appendChild(p.ghost);
+    p.ind=document.createElement('div'); p.ind.className='bind'; p.ind.hidden=true; document.body.appendChild(p.ind);
+    document.body.classList.add('dragging');
+    if(p.src==='script') renderBlocks();
+  }
+  const gx=e.clientX-p.dx, gy=e.clientY-p.dy;
+  p.ghost.style.left=gx+'px'; p.ghost.style.top=gy+'px';
+  p.trash=inside(palette,e.clientX,e.clientY);
+  palette.classList.toggle('trash',p.trash&&p.src==='script');
+  p.drop=p.trash?null:findDrop(gx+10,gy+8);
+  p.ind.hidden=!p.drop;
+  if(p.drop){ p.ind.style.left=p.drop.x+'px'; p.ind.style.top=(p.drop.y-3)+'px'; }
+});
+function endDrag(e){
+  if(!press||e.pointerId!==press.id) return;
+  const p=press; press=null;
+  if(!p.drag) return;
+  lastDragEnd=Date.now();
+  p.ghost.remove(); p.ind.remove(); palette.classList.remove('trash'); document.body.classList.remove('dragging');
+  if(p.drop){ p.drop.list.splice(p.drop.i,0,p.node); sfx.step(); }
+  else if(p.src==='script'&&!p.trash){ p.orig.list.splice(p.orig.i,0,p.node); } // dropped somewhere else: put it back
+  renderBlocks(); sync();
+}
+window.addEventListener('pointerup',endDrag);
+window.addEventListener('pointercancel',endDrag);
+
+// switching between blocks and code
+function applyMode(m,quiet){
+  if(m==='blocks'){
+    let body;
+    try{ body=parse(ta.value).body; }
+    catch(e){
+      if(!(e instanceof PErr)) throw e;
+      m='code'; badLine=e.line;
+      log(`${e.line+1}ぎょうめ： ${e.msg}\nコードを なおすと ブロックに きりかえられるよ`,'err');
+    }
+    if(body){
+      const hadMemo=/#/.test(ta.value.replace(STAGES[sIdx].starter||'\u0000',''));
+      prog=toModel(body);
+      const txt=gen(prog);
+      if(txt!==ta.value){ ta.value=txt; store.set('code'+sIdx,txt); }
+      if(hadMemo&&!quiet) log('ブロックに したよ。# の メモは ブロックには ないので きえたよ','info');
+    }
+  }
+  mode=m; if(!quiet) store.set('mode',m);
+  $('#edwrap').hidden=$('#chips').hidden=m!=='code';
+  $('#bpane').hidden=m!=='blocks';
+  document.querySelectorAll('.mtab').forEach(t=>t.setAttribute('aria-selected',t.dataset.mode===m));
+  if(m==='blocks') renderBlocks();
+  renderHL();
+  return m;
+}
+document.querySelectorAll('.mtab').forEach(t=>t.onclick=()=>{
+  if(run.active||t.dataset.mode===mode) return;
+  runLine=-1; badLine=-1;
+  if(applyMode(t.dataset.mode)===t.dataset.mode) log(mode==='blocks'?'ブロックで かこう！ ならべた ものは コードにも なるよ':'ブロックが コードに なったよ。かきかえても いいよ','info');
+});
+
 /* ---------- field ---------- */
 const pct=v=>(v*100/N)+'%';
 function buildField(){
@@ -427,13 +625,14 @@ function bubble(t){const rb=$('#robot');rb.innerHTML=`🤖<span class="bubble">$
 
 /* ---------- console ---------- */
 function log(msg,kind){const c=$('#console');c.className='console '+(kind||'info');c.textContent=msg;}
-function showErr(e){badLine=e.line;runLine=-1;renderHL();log(`${e.line+1}ぎょうめ： ${e.msg}`,'err');}
+function showErr(e){badLine=e.line;runLine=-1;renderHL();log(mode==='blocks'?e.msg:`${e.line+1}ぎょうめ： ${e.msg}`,'err');}
 
 /* ---------- run ---------- */
 function setRunning(on){
   run.active=on; ta.readOnly=on;
   $('#runBtn').hidden=on; $('#stopBtn').hidden=!on;
-  document.querySelectorAll('#chips .chip,.stg').forEach(b=>{ if(on) b.dataset.was=b.disabled; b.disabled=on?true:(b.dataset.was==='true'); });
+  $('#bpane').classList.toggle('locked',on);
+  document.querySelectorAll('#chips .chip,.stg,.mtab').forEach(b=>{ if(on) b.dataset.was=b.disabled; b.disabled=on?true:(b.dataset.was==='true'); });
   if(!on) renderStages();
 }
 async function execute(){
@@ -442,7 +641,7 @@ async function execute(){
   let prog,steps;
   try{ prog=parse(ta.value); steps=flatten(prog.body,[]); }
   catch(e){ if(e instanceof PErr){ showErr(e); sfx.ng(); return; } throw e; }
-  if(!steps.length){ log('まだ めいれいが ないよ。right 1 などを かいてみてね','err'); return; }
+  if(!steps.length){ log(mode==='blocks'?'まだ ブロックが ないよ。「じっこう したら」の したに ならべてね':'まだ めいれいが ないよ。right 1 などを かいてみてね','err'); return; }
   resetField(); renderHL();
   const tok=++run.token; setRunning(true); log('▶ じっこう ちゅう…','info');
   await sleep(250);
@@ -524,7 +723,8 @@ function loadStage(i){
   ta.value=store.get('code'+i,null) ?? (STAGES[i].starter||'');
   runLine=-1; badLine=-1; buildField(); resetField(); renderHL(); renderStages();
   $('#stepInfo').textContent='-';
-  log('プログラムを かいたら「じっこう」を おしてね（Ctrl/⌘ + Enter でも うごくよ）','info');
+  const want=prefMode();
+  if(applyMode(want,true)===want) log(mode==='blocks'?'ブロックを ならべたら「じっこう」を おしてね':'プログラムを かいたら「じっこう」を おしてね（Ctrl/⌘ + Enter でも うごくよ）','info');
 }
 speed=store.get('speed',380);
 document.querySelectorAll('.speed button').forEach(x=>x.setAttribute('aria-pressed',+x.dataset.sp===speed));

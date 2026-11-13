@@ -31,7 +31,7 @@ body{
 }
 .app{max-width:760px;margin:0 auto}
 button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
-button:focus-visible{outline:4px solid var(--eigo);outline-offset:3px}
+button:focus-visible,a:focus-visible{outline:4px solid var(--eigo);outline-offset:3px}
 button:disabled{cursor:not-allowed;opacity:.45}
 h1,h2,h3{font-family:var(--display);font-weight:400;text-wrap:balance;margin:0;line-height:1.3}
 
@@ -42,6 +42,8 @@ h1,h2,h3{font-family:var(--display);font-weight:400;text-wrap:balance;margin:0;l
 .pill{background:var(--card);border:2px solid var(--line);border-radius:999px;padding:5px 14px;font-weight:900;font-size:17px;display:inline-flex;align-items:center;gap:6px}
 .pill .st{color:var(--star);font-size:20px;line-height:1}
 .pill b{font-variant-numeric:tabular-nums}
+a.pill{color:inherit;text-decoration:none}
+a.pill:hover{border-color:currentColor}
 
 .btn{border:0;border-radius:18px;padding:13px 22px;font-weight:900;font-size:19px;background:var(--ink);color:#fff;box-shadow:0 5px 0 rgba(20,40,60,.22);transition:transform .08s,box-shadow .08s}
 .btn:active:not(:disabled){transform:translateY(3px);box-shadow:0 2px 0 rgba(20,40,60,.22)}
@@ -228,6 +230,7 @@ h1,h2,h3{font-family:var(--display);font-weight:400;text-wrap:balance;margin:0;l
   <header class="top">
     <button class="logo" id="homeBtn" aria-label="ホームへ"><span class="sun"></span>まなびじま</button>
     <div class="topright">
+      <a class="pill back" href="../" title="ゲームを えらぶ ページへ もどる">← あそびば</a>
       <span class="pill" title="あつめた ほし"><span class="st">★</span><b id="starNum">0</b></span>
       <button class="pill" id="soundBtn">おと：オン</button>
       <button class="pill" id="resetAllBtn">リセット</button>
