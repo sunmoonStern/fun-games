@@ -72,6 +72,10 @@ header p{margin:10px auto 0;color:var(--ink-soft);font-weight:700;max-width:32em
 
 footer{margin-top:36px;text-align:center;color:var(--ink-soft);font-size:14px;font-weight:700}
 footer p{margin:4px auto;max-width:40em}
+footer a{color:var(--ink-soft);text-underline-offset:3px}
+footer a:hover{color:var(--ink)}
+footer a:focus-visible{outline:3px solid var(--eigo);outline-offset:3px;border-radius:4px}
+footer .about{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);max-width:24em}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -119,6 +123,7 @@ footer p{margin:4px auto;max-width:40em}
 
   <footer>
     <p>★や きろくは、あそんでいる ブラウザの なかだけに ほぞんされます。</p>
+    <p class="about"><a href="https://sunmoonstern.github.io/">作者について</a></p>
   </footer>
 </div>
 </body>
