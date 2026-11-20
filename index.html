@@ -81,6 +81,24 @@ header p{margin:10px auto 0;color:var(--ink-soft);font-weight:700;max-width:32em
 .g-lab .tags span{background:var(--lab-panel);color:var(--lab-ink);border:1px solid var(--lab-line)}
 .g-lab .go{color:var(--ok)}
 
+/* 保護者・先生むけ：ふだんは ちいさな ボタンだけ。ひらくと おとな むけの 文章 */
+.guide{margin-top:32px;text-align:center}
+.guide summary{display:inline-flex;align-items:center;gap:6px;cursor:pointer;list-style:none;color:var(--ink-soft);background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px 14px;font-size:13px;font-weight:700}
+.guide summary::-webkit-details-marker{display:none}
+.guide summary::after{content:"▸";transition:transform .15s}
+.guide[open] summary::after{transform:rotate(90deg)}
+.guide summary:hover{color:var(--ink)}
+.guide summary:focus-visible{outline:3px solid var(--eigo);outline-offset:3px}
+.guide summary h2{font:inherit;margin:0}
+.gbody{margin-top:12px;text-align:left;background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px 26px;font-size:15px;line-height:1.85}
+.gbody h3{font-size:15px;font-weight:900;margin:16px 0 4px}
+.gbody h3:first-of-type{margin-top:12px}
+.gbody p,.gbody ul{margin:0}
+.gbody ul{padding-left:1.3em}
+.gbody a{color:var(--eigo);text-underline-offset:3px}
+.gbody code{white-space:nowrap;font-family:var(--mono);font-size:.95em;background:var(--isle);border-radius:4px;padding:0 4px}
+@media (max-width:480px){.gbody{padding:18px 18px}}
+
 footer{margin-top:36px;text-align:center;color:var(--ink-soft);font-size:14px;font-weight:700}
 footer p{margin:4px auto;max-width:40em}
 footer a{color:var(--ink-soft);text-underline-offset:3px}
@@ -134,6 +152,27 @@ footer .about{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);
       </div>
     </a>
   </main>
+
+  <details class="guide">
+    <summary><h2>保護者・先生の方へ</h2></summary>
+    <div class="gbody">
+    <p>「まなびの あそびば」は、小学校低学年の子どもが遊びながら学べる、無料の学習ゲーム集です。ブラウザだけで動くので、Chromebook・iPad・パソコンなどでインストールせずに使えます。</p>
+    <h3>学べること</h3>
+    <ul>
+      <li><strong>まなびじま</strong>：九九（1〜9の段）、英語の単語の聞き取り、キーボードのタイピング、命令を並べてロボットを動かすプログラミングの基礎。</li>
+      <li><strong>ロボコード</strong>：ブロックを並べるか、<code>right 2</code>・<code>repeat</code> などの短い英語のコマンドを打ち込んで、ロボットをゴールまで動かすプログラミングゲーム（全10ステージ）。</li>
+    </ul>
+    <h3>安心して使っていただくために</h3>
+    <ul>
+      <li>会員登録・ログインは不要で、広告もありません。</li>
+      <li>個人情報は集めません。★や進み具合は、使っている端末のブラウザの中だけに保存され、外部には送信されません。</li>
+      <li>英語の読み上げには、端末に備わっている音声読み上げ機能を使っています。</li>
+      <li>ソースコードは <a href="https://github.com/sunmoonStern/fun-games">GitHub</a> で公開しており、どなたでも中身を確認できます。</li>
+    </ul>
+    <h3>学校の端末で開けないとき</h3>
+    <p>学校のWebフィルタで止められることがあります。その場合は、端末の管理者の方に <code>sunmoonstern.github.io</code> の許可をご相談ください。</p>
+    </div>
+  </details>
 
   <footer>
     <p>★や きろくは、あそんでいる ブラウザの なかだけに ほぞんされます。</p>
