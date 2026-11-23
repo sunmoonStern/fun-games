@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="小学校低学年向けの無料学習ゲーム。九九・英語・タイピング・プログラミングの4つの島をめぐって★を集めよう。登録不要、広告なし。">
+<meta name="description" content="小学校低学年向けの無料学習ゲーム。九九・漢字・英語・タイピング・プログラミングの5つの島をめぐって★を集めよう。登録不要、広告なし。">
 <style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
-<title>まなびじま｜九九・英語・タイピングの学習ゲーム（まなびの あそびば）</title>
+<title>まなびじま｜九九・漢字・英語・タイピングの学習ゲーム（まなびの あそびば）</title>
 <link rel="canonical" href="https://sunmoonstern.github.io/fun-games/manabijima/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="まなびの あそびば">
 <meta property="og:title" content="まなびじま">
-<meta property="og:description" content="小学校低学年向けの無料学習ゲーム。九九・英語・タイピング・プログラミングの4つの島をめぐって★を集めよう。登録不要、広告なし。">
+<meta property="og:description" content="小学校低学年向けの無料学習ゲーム。九九・漢字・英語・タイピング・プログラミングの5つの島をめぐって★を集めよう。登録不要、広告なし。">
 <meta property="og:url" content="https://sunmoonstern.github.io/fun-games/manabijima/">
 <meta property="og:locale" content="ja_JP">
 <meta name="twitter:card" content="summary">
@@ -21,7 +21,7 @@
 /* layout: one centered column like an island map; each mode is a colored "island" tile, play screens are one big card */
 :root{
   --bg:#e4f3ef; --bg-dot:#cfe8e1; --ink:#22344a; --ink-soft:#5d7183; --card:#ffffff; --line:#d3e5e0;
-  --kuku:#ff6b57; --eigo:#3b95f0; --type:#22a463; --robo:#f2a20c;
+  --kuku:#ff6b57; --eigo:#3b95f0; --type:#22a463; --robo:#f2a20c; --kan:#6a4fd0;
   --good:#1f9d5c; --good-bg:#dff6e9; --bad:#e0484d; --bad-bg:#fde4e4; --star:#ffc21a; --star-off:#d9e2e0;
   --display:"Mochiy Pop One","Hiragino Maru Gothic ProN","Zen Maru Gothic",sans-serif;
   --body:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP",sans-serif;
@@ -73,7 +73,11 @@ a.pill:hover{border-color:currentColor}
 .tile .glyph{font-family:var(--display);font-size:clamp(30px,8vw,44px);line-height:1.1;background:rgba(255,255,255,.22);align-self:flex-start;padding:6px 12px;border-radius:16px}
 .tile h3{font-size:clamp(19px,4.6vw,24px);margin-top:auto}
 .tile p{margin:0;font-size:15px;opacity:.95;font-weight:700}
-.t-kuku{background:var(--kuku)} .t-eigo{background:var(--eigo)} .t-type{background:var(--type)} .t-robo{background:var(--robo)}
+.t-kuku{background:var(--kuku)} .t-eigo{background:var(--eigo)} .t-type{background:var(--type)} .t-robo{background:var(--robo)} .t-kan{background:var(--kan)}
+a.tile{text-decoration:none}
+.tile.wide{grid-column:1/-1;min-height:0;flex-direction:row;align-items:center;gap:14px}
+.tile.wide h3{margin-top:0}
+.tile.wide .glyph{align-self:center}
 
 .stickers{margin-top:22px}
 .stickers h3{font-size:19px}
@@ -251,6 +255,7 @@ a.pill:hover{border-color:currentColor}
         <button class="tile t-eigo" data-go="eigoSel"><span class="glyph">ABC</span><h3>えいごの しま</h3><p>きいて みて えらぼう</p></button>
         <button class="tile t-type" data-go="typeSel"><span class="glyph">asdf</span><h3>キーボードの しま</h3><p>タイピングの れんしゅう</p></button>
         <button class="tile t-robo" data-go="robotSel"><span class="glyph">→↑→</span><h3>ロボットの しま</h3><p>めいれいを ならべて うごかそう</p></button>
+        <a class="tile t-kan wide" href="kanji/"><span class="glyph">字</span><span><h3>かんじの しま</h3><p>かきじゅんを みて かいて おぼえよう（1〜6ねんせい）</p></span></a>
       </div>
       <div class="stickers card">
         <h3>シールちょう</h3>
@@ -521,6 +526,8 @@ $('#rsYes').onclick=()=>{
   Object.keys(WORDS).forEach(k=>store.del('eg'+k));
   for(let i=0;i<TSTAGES.length;i++) store.del('ty'+i);
   for(let i=0;i<LEVELS.length;i++) store.del('rb'+i);
+  // かんじの しま（kanji/）の きろく
+  try{ Object.keys(localStorage).filter(k=>/^kanji_(ok|g\d+_\d+|karuta\d|master\d)$/.test(k)).forEach(k=>localStorage.removeItem(k)); }catch(e){}
   stars=0; renderStars(); show('home');
 };
 
